@@ -1,0 +1,598 @@
+%! Tex program = xelatex
+
+\documentclass[referee]{raa}  
+\usepackage{array}  % 用于增强表格功能
+\usepackage{cancel}
+\usepackage{placeins}
+\usepackage{graphicx,times}
+\usepackage{natbib}
+\usepackage{amssymb,amsmath}
+\usepackage{tabularx}  % 在导言区加载 tabularx 包
+\bibpunct{(}{)}{;}{a}{}{,}
+
+%\usepackage[UTF8]{ctex}
+
+\usepackage[pagebackref=true]{hyperref}
+
+\begin{document}
+
+   \title{Research on Rationally Oversampled Channelization Algorithm for Ultra-Wideband Signals}
+
+ \volnopage{ {\bf 20XX} Vol.\ {\bf X} No. {\bf XX}, 000--000}
+   \setcounter{page}{1}
+
+   \author{Xu Du
+      \inst{1,2}
+   \and Hai-long Zhang
+      \inst{1,2,3,4*}
+   \and Shao-cong Guo
+   	\inst{5}      
+   \and Ya-zhou Zhang
+   	\inst{1}      
+   \and Jie Wang
+   	\inst{1,2,4}
+   \and Xin-chen Ye
+   	\inst{1,4}
+   \and Jian Li
+   	\inst{1,2}
+    \and Wen-na Cai
+   	\inst{1,2}
+   \and Han Wu
+   	\inst{1,2}
+   \and Ting Zhang
+   	\inst{1,2}
+   }
+%% Here is an example of three authors come from different institutes.
+%% For single author or all the authors from an institute, use "\inst{}" only
+
+
+   \institute{Xinjiang Astronomical Observatory, Chinese Academy of Sciences,
+             Urumqi 830011, China; {\it zhanghailong@xao.ac.cn}\\
+%% Please give the E-mail address of the author, to whom future correspondence and
+%% offprint requests will be sent.
+        \and
+            University of Chinese Academy of Sciences, Beijing 100049, China\\
+        \and
+            Key Laboratory of Radio Astronomy, Chinese Academy of Sciences, Nanjing 210008, China\\
+        \and
+            National Astronomical Data Center, Beijing 100101, China\\
+        \and 
+            Southeast University, Nanjing 211189, China \\
+\vs\no
+   {\small Received 20xx month day; accepted 20xx month day}
+   }
+\abstract{
+   To address the issues of low accuracy and high computational complexity in traditional channelization techniques for ultra-wideband signals, this paper proposes a novel rationally oversampled channelization method to enhance the accuracy and efficiency of signal processing. The proposed method is evaluated by implementing and comparing critically sampled and integer oversampled channelization algorithms. A detailed analysis of the impact of different oversampling factors and filter orders on performance is provided. The validity of the proposed algorithm is verified using baseband data from the pulsar J0437-4715 observed by the Parkes telescope, demonstrating its effectiveness and correctness.
+\keywords{ pulsars: general --- methods: data analysis --- techniques: miscellaneous 
+}
+}
+
+   \authorrunning{Xu Du and Hai-long Zhang et al.} %author_head in even pages
+   \titlerunning{Research on Rationally Oversampled Channelization Algorithm for Ultra-Wideband Signals}  % title_head in odd pages
+   \maketitle
+ 
+\section{Introduction}
+
+With the continuous advancement of modern technology, astronomical observation techniques are rapidly evolving, placing increasing demands on signal processing methods. In the context of astronomical observations, signal processing and transmission are critical, as they directly affect the accuracy and reliability of the observed data. Ultra-WideBand (UWB) signals, characterized by their exceptionally broad frequency ranges, are typically defined as signals with a relative bandwidth exceeding $0.25$ or an absolute bandwidth greater than $500$ MHz (\citealt{Sabath+2005}) . These signals exhibit broad spectral coverage in the frequency domain and extremely short pulses in the time domain, posing significant challenges for their processing (\citealt{WuSf+2024}).
+
+Channelization technology, which decomposes wideband or ultra-wideband signals into multiple narrowband, plays a crucial role in improving the flexibility and efficiency of signal processing (\citealt{Tang+2018}). 
+% \del{ In radio astronomy, the channelization of ultra-wideband signals is a key step, but traditional methods often struggle to balance accuracy, efficiency, and flexibility, limiting their applicability in demanding scenarios.}
+% \add{
+Astrophysical phenomena such as pulsars and Fast Radio Bursts (FRBs) exhibit pronounced transient characteristics (\citealt{ZhangHl+2024}) and extremely broad spectral bandwidth (e.g., FRBs exhibit spectral coverage extending to several GHz). The full-bandwidth output data rate of Qi-Tai Telescope (QTT) ultra-wideband receive system reaches 208 Gb/s. The channelization of astronomical ultra-wideband signals is a necessary step, but traditional methods often struggle to balance accuracy, efficiency, and flexibility, limiting their applicability in demanding scenarios. In  critically sampled channelizer, insufficient subband edge attenuation lead to fan-shaped loss. In the integer oversampling channel, under the limitation of fixed oversampling factors (e.g. 2×, 3×), it shows low bandwidth utilization (50\% effective data rate), which puts significant pressure on the storage system and transmission system of long-term observation projects such as pulsar time array.
+% }
+
+To address these limitations, this study proposes a novel rationally oversampled channelization method for ultra-wideband signals in radio astronomy. While critically sampled channelization algorithms are efficient and avoid redundant data generation, they are limited by aliasing and lack flexibility (\citealt{Morrison+2020}). In contrast, integer oversampled channelization algorithms offer higher accuracy and better data recovery but require increased bandwidth. The rationally oversampled channelization algorithm provides a balanced solution, offering improved accuracy, reduced data bandwidth, and greater flexibility, making it particularly suitable for processing ultra-wideband signals in dynamic astronomical environments.
+
+Tuohutinuer et al. implemented a polyphase filter bank based on CUDA, effectively improving the processing power and computational efficiency of radio astronomical observation data by leveraging the floating-point computation and efficient parallel execution capabilities of graphics processors (\citealt{Tohtonur+2017}). This approach is essentially based on a critically sampled channelization algorithm. George Hobbs et al. used the Xilinx Kintex FPGA development board to divide the $3328$ MHz bandwidth data captured by the ultra-wideband receiver into $26$ sub-bands, each $128$ MHz wide, using a critically sampled polyphase filter bank. The data was then transmitted to the Medusa gpu processing unit for further processing. They plan to use oversampling techniques for channelization in the future to prevent signal attenuation at the edges of sub-bands and effectively mitigate aliasing effects (\citealt{Hobbs+2020}).
+
+The Qi-Tai Telescope will use an ultra-wideband receiver to observe astronomical signals in the $150$ MHz–$115$ GHz frequency range (\citealt{Wang+2023}). Its ultra-wideband low-frequency receiver, with a bandwidth of $704$–$4032$ MHz, will be deployed first. For the QTT's ultra-wideband signal, Zhang Hailong et al. designed a signal division scheme and verified the critically sampled channelization algorithm using simulated ultra-wideband pulsar baseband data (\citealt{ZhangHl+2023}). Zhang Meng et al. applied a $2\times$ oversampled polyphase filter bank to divide the $J0437$–$4715$ observation data into $16$ sub-bands, and after removing redundant data, recombined the sub-bands into a wideband signal. The resulting signal closely resembled the original observation data, yielding a more ideal pulse profile than the critically sampled polyphase filter bank (\citealt{ZhangM+2023}).
+
+Jia Bocheng et al. applied a $2\times$ oversampled channelizer at the Onsala space observatory to achieve real-time capture of Fast Radio Bursts (FRBs) (\citealt{Jia+2021}). Smith et al. implemented a $4$ GHz, $4096$-branch, $8$-tap, $2\times$ oversampled channelizer on an RFSoC using HLS, applying it to frequency-division multiplexing microwave resonator detectors without requiring hardware description languages. They plan to expand the design in the future to accommodate arbitrary fractional decimation rates (\citealt{Smith+2021}).
+
+In this study, the rationally oversampled channelization algorithm is implemented using Python and applied to process real astronomical data. The results after channelization, are displayed and compared with the original data. Additionally, the pulsar profile is plotted to verify the correctness of the channelization algorithm. By comparing the performance of the critically sampled channelization, integer oversampled channelization, and rationally oversampled channelization algorithms, the potential advantages of the proposed method are highlighted. 
+
+% \del{
+% \section{Oversampled Algorithms}
+% }
+
+% \del{
+% \subsection{Design of critically sampled channelization}
+% }
+
+% \del{
+% The critically sampled channelization algorithm is an efficient technique widely used in ultra-wideband signal processing in radio astronomy. It decomposes wideband or ultra-wideband signals into multiple sub-band signals, with each sub-band representing a frequency sub-interval of the original signal. The structure of the critically sampled channelization algorithm typically includes a commutator, filters, and Fast Fourier Transform (FFT) units.
+
+% The commutator is a key component of the channelization algorithm. Its main function is to distribute the input signal across multiple filters. Specifically, the commutator alternately assigns the sample points of the input signal to different filters in a certain order, enabling the polyphase processing of the signal (\citealt{Harris+2024}). The design of the commutator must ensure that the signal sequence received by each filter correctly represents a sub-band of the original signal.
+
+% The filter is the core part of the channelization algorithm. Each filter is responsible for processing a specific sub-band of the input signal. In the critically sampled channelization algorithm, the sampling rate of each sub-band signal is equal to the original signal’s sampling rate divided by the number of sub-bands (\citealt{Burnett+2023}). The decomposed sub-band signals can then be processed independently for tasks such as removal of radio frequency interference (RFI) \citealt{Wu+2024}, while preserving the spectral characteristics of the original signal.
+
+% When designing the filter, several factors need to be considered, including filter order, window function selection, and hardware resources. The filter order determines both the complexity and performance of the filter. A higher filter order improves the frequency response accuracy but increases computational complexity and hardware resource consumption. The choice of window function also affects the filter's passband and stopband characteristics. In this paper, the Hamming window is used, as it strikes a good balance between main lobe width and side lobe attenuation. The moderate main lobe width provides better frequency resolution, while the faster side lobe attenuation helps reduce side lobe leakage (\citealt{Price+2021}).
+
+% To achieve efficient frequency domain processing, the Inverse Fast Fourier Transform (IFFT) and Fast Fourier Transform are typically used. In the channelization algorithm, the input signal is separated into multiple frequency components, enabling the sub-band decomposition of the signal. The IFFT and FFT are preferred over the Inverse Discrete Fourier Transform (IDFT) and Discrete Fourier Transform (DFT) due to their lower computational complexity, which significantly improves the processing efficiency of the DFT filter bank.
+
+% The structure diagram of the critically sampled channelization algorithm is shown in Fig \ref{Figure1}. In this diagram, $x[0], x[1], \dots$represent the input data, the red section indicates the commutator, and $M$ denotes the number of channels. $z^{-1}$ represents the delay unit, and each blue section corresponds to a filter. $h_n[t]$ represents the $t$-th filter coefficient of the $n$-th filter. $\otimes$ indicates the multiplier, and $\oplus$ represents the adder. The green section is the $M$-point IFFT, which can also be implemented using FFT. The primary difference between the two is that the input data order is reversed in FFT (\citealt{Renfors+2017}), but in this paper, the IFFT is used. $Y_n[t]$ represents the $t$-th data output by the $n$-th channel of the IFFT.
+% }
+
+
+% \begin{figure}[!htbp]
+%    \centering
+%    \includegraphics[width=\textwidth, angle=0]{./img/cspfb_structure.pdf}
+%    \caption{Structure diagram of critically sampled channelization algorithm} 
+%    \label{Figure1}
+% \end{figure}
+
+% \del{
+% \subsection{Design of integer oversampled channelization}
+% }
+
+% \del{
+% The integer oversampled channelization algorithm enhances the resolution and processing flexibility of the signal by increasing the sampling rate during signal processing. In practice, this often requires a zero insertion operation, where zero values are inserted between adjacent filter coefficients, thereby increasing the sampling rate to an integer multiple of the original rate. This zero insertion effectively prevents aliasing during the oversampled process, ensuring the accuracy of signal processing.
+
+% The integer oversampled channelization algorithm consists of a commutator, filters, a circular shifter, a cutter, and an IFFT. Compared to the critically sampled channelization algorithm, it introduces a circular shifter and a cutter. The circular shifter ensures that the data maintains the correct phase relationship throughout the processing. Since the non-maximum decimation channelization algorithm induces phase rotation in each output sub-band, the circular shifter adjusts the data position to correct the phase rotation caused by oversampling, thus maintaining the accuracy of the results.
+
+% The cutter eliminates redundant data within each sub-band signal. In the oversampled channelization algorithm, the bandwidth of each sub-band is $M/D$ times that of the critically sampled channelization algorithm. In the integer oversampled channelization algorithm, the sub-band bandwidth is at least twice that of the critically sampled algorithm, resulting in redundant data between adjacent sub-bands. The cutter removes this redundancy, retaining only $D/M$ of the data. The structure diagram of the integer oversampled channelization algorithm is shown in Fig \ref{Figure2}. The orange and purple sections represent the circular shifter and cutter, respectively, added to the critically sampled channelization algorithm. When implemented using FPGA, the cutter should be omitted.
+% }
+
+
+% \begin{figure}[!htbp]
+% \centering
+% \includegraphics[width=\textwidth, angle=0]{./img/iospfb_structure.pdf}
+% \caption{Structure diagram of integer oversampled channelization algorithm} 
+% \label{Figure2}
+% \end{figure}
+% \FloatBarrier  % 确保前面的图已经被排版
+
+
+
+
+% \add{
+\section{Rationally oversampled channelization algorithm}
+% }
+
+% \subsection{Design and implementation of rationally oversampled channelization algorithm}
+
+\FloatBarrier  % 确保前面的图已经被排版
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=\textwidth, angle=0]{./img/ms2024-0384fig1.pdf}
+\caption{Structure diagram of rationally oversampled channelization algorithm} 
+\label{Figure2}
+\end{figure}
+
+The structure diagram of the rationally oversampled channelization algorithm proposed in this paper is shown in Fig \ref{Figure2}. In this diagram, $x[0], x[1], \dots$represent the input data, the red section indicates the commutator, and $M$ denotes the number of channels. $z^{-1}$ represents the delay unit. The commutator is a key component of the channelization algorithm. Its main function is to distribute the input signal across multiple filters. Specifically, the commutator alternately assigns the sample points of the input signal to different filters in a certain order, enabling the polyphase processing of the signal (\citealt{Harris+2024}). The design of the commutator must ensure that the signal sequence received by each filter correctly represents a sub-band of the original signal.
+
+The filter is the core part of the channelization algorithm. Each filter is responsible for processing a specific sub-band of the input signal. When designing the filter, several factors need to be considered, including filter order, window function selection, and hardware resources. The filter order determines both the complexity and performance of the filter. A higher filter order improves the frequency response accuracy but increases computational complexity and hardware resource consumption. The choice of window function also affects the filter's passband and stopband characteristics. In this paper, the Hamming window is used, as it strikes a good balance between main lobe width and side lobe attenuation. The moderate main lobe width provides better frequency resolution, while the faster side lobe attenuation helps reduce side lobe leakage (\citealt{Price+2021}).
+% In the critically sampled channelization algorithm, the sampling rate of each sub-band signal is equal to the original signal’s sampling rate divided by the number of sub-bands (\citealt{Burnett+2023}). 
+% The decomposed sub-band signals can then be processed independently for tasks such as removal of radio frequency interference (RFI) \citealt{Wu+2024}, while preserving the spectral characteristics of the original signal.
+
+This algorithm modifies the filter structure of the integer oversampled channelization algorithm, as shown in Fig \ref{Figure3}. Where $h_n[t]$ represents the $t$-th filter coefficient of the $n$-th filter. $\otimes$ indicates the multiplier, and $\oplus$ represents the adder. Similar to integer oversampled, zero padding is required between adjacent filter coefficients. However, since it is not possible to insert a fractional number of zeros, the zero padding operation must be performed in two steps. First, the coefficients are reshaped into $M$ rows, where $M$ is the number of channels in the filter bank, and each row corresponds to the filter coefficients of a particular filter. Then, $T=Numerator\ of \ reduced\ fraction(\frac M D)-1$ zeros are inserted between adjacent coefficients of the original filter, thereby increasing the sampling rate to an integer multiple of the original rate. The original filters are then split into $X=Denominator\ of \ reduced\ fraction(\frac M D)$ individual sub-filters. 
+
+\FloatBarrier  % 确保前面的图已经被排版
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=\textwidth, angle=0]{./img/ms2024-0384fig2.pdf}
+\caption{Structure diagram of rationally oversampled channelization algorithm} 
+\label{Figure3}
+\end{figure}
+\FloatBarrier  % 确保前面的图已经被排版
+
+In rationally oversampled channelization algorithms, the initial decimation's system function is expressed as:
+
+\begin{equation}
+H(z) = \sum_{n=-\infty}^{\infty} h(n) z^{-n}  \label{eqa}
+\end{equation}
+
+This represents the convolution of the input signal with the system's impulse response \( h(n) \) in the frequency domain. Through polyphase decomposition, it can be reformulated as:
+
+\begin{equation}
+ H(z) = \sum_{i=0}^{M-1} \left[ \sum_{m=-\infty}^{\infty} h(mM - i) z^{-mM} \right] z^i = \sum_{i=0}^{M-1} H_i(z^M) z^i  \label{eqb}
+\end{equation}
+
+In this decomposition, the filter's impulse response \( h(n) \) is partitioned into \( M \) subsequences, each corresponding to a specific phase. Here, \( i \) denotes the phase index, ranging from \( 0 \) to \( M-1 \), and \( m \) represents the time index of the decimated sequence for each sub-filter. Each subsequence corresponds to a sub-filter \( H_i(z) \), defined as:
+
+\begin{equation}
+ H_i(z) = \sum_{m=-\infty}^{\infty} h(mM - i) z^{-m} \label{eqc}
+\end{equation}
+
+This indicates that the system function of each sub-filter \( H_i(z) \) is the \( z \)-transform of the impulse response sequence corresponding to that phase. 
+% \add{
+The \(m \) is the time index of the subfilter, indicating the position of the filter coefficient within each multiphase branch. For the \(i \) th multiphase branch, the subfilter coefficient is extracted from the original filter \(h (n)\) by interval \(M \).
+% }
+Through this decomposition, the original filter \( H(z) \) can be represented as a combination of these sub-filters, where each sub-filter processes a decimated data of the original input. The \(z\)-transform of the output signal can be expressed as: 
+
+\begin{equation}
+   Y_k(z)=\frac 1 D \sum _i ^{D-1}U_k(z^ \frac 1 D W_D^i)H_i(z^ \frac M D W_D ^{iM}) \quad W_D^k=e^{-j\frac {2k\pi} M}  \label{eq1}
+\end{equation}
+
+% Where $ P_k(z) $ represents the $k$-th sub-filter after the $M$-phase decomposition of the prototype filter $H_0(z)$, and its unit impulse response is given by: 
+
+% \begin{equation}
+%    P_l(i)=h_0(iM+l) \quad l=0,1,2,\dots,M-1  \label{eq2}
+% \end{equation}
+
+Where $ U_k $ represents the delay of the $k$-th polyphase branch. This design allows flexible configuration of the oversampling factor and data bandwidth in the channelization algorithm. We use $ M = 8 $ and $ D = 6 $ as an example, and the transformation diagram of the rationally oversampled coefficients is shown in Fig \ref{Figure4a}. 
+
+In the rationally oversampled channelization algorithm, the data to be filtered must be repeated. First, the one-dimensional input data is reshaped into $ M $ rows. Then, an overlap operation is performed on the reshaped data. Given that the number of channels $ M = 8 $ and the decimation factor $D = 6$, the proportion of repeated data is $1/4$, meaning that the data $ x[6] $ and $ x[7] $ from $ x[0] \dots x[7] $ are repeated, as shown in the  “Overlap Data”  in Fig \ref{Figure4b}. Additionally, an offset operation is performed, where the number of  “Offset Data”  equals the number of sub-filters, namely $X$. The offset for each  “Offset Data”  is ${gcd}(M, D)$. The offset data is then split and reorganized into new sub-filter data, and the corresponding sub-filter coefficients are convolved and summed, yielding the result of the $8/6\times$ rationally oversampled channelization. The transformation diagram of rationally oversampled
+data is shown in Fig \ref{Figure4b}.
+
+\FloatBarrier  % 确保前面的图已经被排版
+\begin{figure}[!htp]
+\centering
+\subfloat[Transformation diagram of the rationally oversampled coefficients]{\includegraphics[width=0.48\textwidth, angle=0]{./img/ms2024-0384fig3a.pdf} \label{Figure4a}}
+\hspace{0.02\textwidth}  % 调整两个图之间的水平间距
+\subfloat[Transformation diagram of rationally oversampled data]{\includegraphics[width=0.48\textwidth, angle=0]{./img/ms2024-0384fig3b.pdf} \label{Figure4b}}
+\caption{Transformation diagrams of rationally oversampled coefficients and data}
+\end{figure}
+\FloatBarrier  % 确保前面的图已经被排版
+
+The orange portion in Fig \ref{Figure2} is often called a circular shifter or circular buffer. The circular shifter ensures that the data maintains the correct phase relationship throughout the processing. Since the non-maximum decimation channelization algorithm induces phase rotation in each output sub-band, the circular shifter adjusts the data position to correct the phase rotation caused by oversampling, thus maintaining the accuracy of the results. The step size for each shift is defined as ${MoveStep} = ({MoveStep} + {M}-{D})\mod M$, where the initial value of ${MoveStep}$ is $0$. The main difference between the integer oversampled channelization algorithm and the proposed method lies in the step size, which varies from the total number of states. For instance, with parameters such as $M = 20$, $D = 15$, and ${OversampleFactor} = \frac{\cancel{20}}{\cancel{15}} = \frac{4}{3}$, the detailed circular shift steps are given. The step sizes for each circular shift are $0, 5, 10, 15$, and each round of the circular shift has $\frac{M}{M-D} = 4$ states, as shown in States $0$ to $3$ in the figure below. State $4$ represents the first state of the next round of circular shifts. The data after circular shift is then processed by a cutter, followed by IFFT or FFT. 
+
+\FloatBarrier  % 确保前面的图已经被排版
+\begin{figure}[!htp]
+\centering
+% 第一行，两个子图
+\begin{subfigure}[b]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth, angle=0]{./img/ms2024-0384fig4a.pdf}
+    \caption{Circular shift state $0$}
+    \label{Figure5a}
+\end{subfigure}
+\hspace{0.02\textwidth}
+\begin{subfigure}[b]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth, angle=0]{./img/ms2024-0384fig4b.pdf}
+    \caption{Circular shift state $1$}
+    \label{Figure5b}
+\end{subfigure}
+
+% 第二行，两个子图
+\vspace{0.01\textheight}  % 调整行间距
+\begin{subfigure}[b]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth, angle=0]{./img/ms2024-0384fig4c.pdf}
+    \caption{Circular shift state $2$}
+    \label{Figure5c}
+\end{subfigure}
+\hspace{0.02\textwidth}
+\begin{subfigure}[b]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth, angle=0]{./img/ms2024-0384fig4d.pdf}
+    \caption{Circular shift state $3$}
+    \label{Figure5d}
+\end{subfigure}
+
+% 第三行，一个子图
+\vspace{0.01\textheight}  % 调整行间距
+\begin{subfigure}[b]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth, angle=0]{./img/ms2024-0384fig4e.pdf}
+    \caption{Circular shift state 0 of the next round}
+    \label{Figure5e}
+\end{subfigure}
+\caption{Transformation diagrams of rationally oversampled coefficients and data}
+\end{figure}
+\FloatBarrier  % 确保前面的图已经被排版
+
+The cutter eliminates redundant data within each sub-band signal. In the oversampled channelization algorithm, the bandwidth of each sub-band is $M/D$ times that of the critically sampled channelization algorithm. In the integer oversampled channelization algorithm, the sub-band bandwidth is at least twice that of the critically sampled algorithm, resulting in redundant data between adjacent sub-bands. The cutter removes this redundancy, retaining only $D/M$ of the data. Different approaches to the cutter have been presented in literature (\citealt{ZhangM+2023}). In this paper, the cutter retains $[0]\sim[D / M*{Size}]$ data as the result of each channel, where ${Size} = {length(FFT(Y))}$, and $Y$ represents the output after IFFT. The channelization algorithm implemented in this paper is open-sourced. \footnote{https://github.com/WhataDavid/Channelizer}
+
+The green section in Fig \ref{Figure2} is the $M$-point IFFT, which can also be implemented using FFT. The primary difference between the two is that the input data order is reversed in FFT (\citealt{Renfors+2017}), but in this paper, the IFFT is used. $Y_n[t]$ represents the $t$-th data output by the $n$-th channel of the IFFT.
+
+
+\section{Experimental analysis and results}
+
+In this study, the algorithm was implemented in Python and used to process tagged signal data and complete astronomical data to validate its correctness. The original data consists of pulsar data from $J0437-4715$, with an observation duration of $8$ seconds, a bandwidth of $400$ MHz, a center frequency of $1382$ MHz, and a dispersion measure (DM) of $2.64476$ $cm^{-3}$ pc, as detailed in Table \ref{tab:inf}.
+
+\begin{table}
+\centering
+\begin{tabular}{l|r}
+Parameters & J0437-4715 \\\hline
+Cfreq (MHz) & 1382 \\
+Bandwidth & 400 \\
+Nbit & 8 \\
+Npol & 2 \\
+Folding period (s) & 0.00575730363767324 \\
+DM ($cm^{-3}$ pc) & 2.64476 \\
+Tsamp (ms) & 0.00125 \\
+Observation time (s) & 8 \\
+File size (GB) &11.9 \\
+\end{tabular}
+\caption{\label{tab:inf}Observation data information of $J0437-4715$}
+\end{table}
+\FloatBarrier  % 确保前面的图已经被排版
+
+\subsection{Processing of Data with Tagged Signals}
+
+Firstly, $12,800$ data points are extracted for the channelization experiment to quickly validate the correctness of the rationally oversampled channelization algorithm. Some tagged signals are added to the extracted data, 
+% \add{
+we added multiple tagged signals to each channel with the same number as the channel serial number and increasing signal amplitude to distinguish mirror signals.
+% } 
+And the spectrum of the test data containing tagged signals is shown in Fig \ref{Figure6}.
+
+\FloatBarrier  % 确保前面的图已经被排版
+\begin{figure}[!htp]
+\centering
+\includegraphics[width=0.8\textwidth, angle=0]{./img/ms2024-0384fig5.pdf}
+\caption{Spectrum of test data containing tagged signal} 
+\label{Figure6}
+\end{figure}
+\FloatBarrier  % 确保前面的图已经被排版
+
+The test data is channelized using the rationally oversampled channelization algorithm with $M = 4$ and $D = 3$. The spectrum after polyphase filtering is shown in Fig \ref{Figure7}. Due to the conjugate symmetry of the obtained data, only the results for one half of the channels are presented.
+
+\FloatBarrier  % 确保前面的图已经被排版
+\begin{figure}[!htp]
+\centering
+\includegraphics[width=0.6\textwidth, angle=0]{./img/ms2024-0384fig6.pdf}
+\caption{Spectrum after polyphase filtering} 
+\label{Figure7}
+\end{figure}
+\FloatBarrier  % 确保前面的图已经被排版
+
+As shown in the Fig \ref{Figure7}, the tagged signals has been split, but the result appears disordered, which is caused by phase interlacing due to oversampling. After applying the circular shifter, the spectrum of each channel is shown in Fig \ref{Figure8}.
+
+\FloatBarrier  % 确保前面的图已经被排版
+\begin{figure}[!htp]
+\centering
+\includegraphics[width=0.6\textwidth, angle=0]{./img/ms2024-0384fig7.pdf}
+\caption{Spectrum after circular shifter} 
+\label{Figure8}
+\end{figure}
+\FloatBarrier  % 确保前面的图已经被排版
+
+The result after processing with the circular shifter clearly shows that the phase of the tagged signal has been corrected; however, redundant data remains. Due to oversampling, the bandwidth of the sub-band signal is increased, introducing data from other channels. The cutter is then applied to remove the redundant data. The result after cutting is shown in Fig \ref{Figure9}. The test data containing the tagged signal has been successfully channelized.
+
+\FloatBarrier  % 确保前面的图已经被排版
+\begin{figure}[!htp]
+\centering
+\includegraphics[width=0.6\textwidth, angle=0]{./img/ms2024-0384fig8.pdf}
+\caption{Spectrum after cutter} 
+\label{Figure9}
+\end{figure}
+\FloatBarrier  % 确保前面的图已经被排版
+
+% The result obtained after merging all channel signals is shown in Fig \ref{FigureConsistSub}. As can be seen from the figure, the result after recombination is close to the original test result.
+
+% \FloatBarrier  % 确保前面的图已经被排版
+% \begin{figure}[!htp]
+% \centering
+% \includegraphics[width=0.6\textwidth, angle=0]{./img/consist_all_subband.pdf}
+% \caption{Spectrum after circular shifter} 
+% \label{FigureConsistSub}
+% \end{figure}
+% \FloatBarrier  % 确保前面的图已经被排版
+
+\subsection{Processing of Data with Complete Signals}
+
+Subsequently, the complete $8$s $J0437-4715$ observation data was experimentally verified. Since the total size of the data is $11.9$ GB, it was processed in $190$ blocks. Each block is $2^{25}$ bytes in size, and the spectrum of the first block of data is shown. The figure includes the spectra of polarization $1$ and polarization $2$, with the orange spectrum representing polarization $1$ and the blue spectrum representing polarization $2$. The spectrum of the first block of the original data is shown in Fig \ref{Figure10a}. After applying the critically sampled channelization algorithm, the integer oversampled channelization algorithm, and the rationally oversampled channelization algorithm, the spectra of the first block of data after channellization algorithm are shown in Fig \ref{Figure10b}, Fig \ref{Figure10c} and Fig \ref{Figure10d}, respectively. From the figures, it can be seen that when a $32$-order FIR filter based on the Hamming window is used in each channel, the critically sampled channelization algorithm exhibits a distinct fan-shaped loss at the channel edges, resulting in significant data distortion. In contrast, the spectra from the integer oversampled and rationally oversampled channelization algorithms are closer to the original data, indicating better recovery of the original signal.
+
+\begin{figure}[!htp]
+\centering
+% 第一行，两个子图
+\begin{subfigure}[b]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth, angle=0]{./img/ms2024-0384fig9a.pdf}
+    \caption{Original data}
+    \label{Figure10a}
+\end{subfigure}
+\hspace{0.02\textwidth}
+\begin{subfigure}[b]{0.45\textwidth}
+    \centering
+    \includegraphics[width=\textwidth, angle=0]{./img/ms2024-0384fig9b.pdf}
+    \caption{$32$-order critically sampled channelizer}
+    \label{Figure10b}
+\end{subfigure}
+
+% 第二行，两个子图
+\vspace{0.01\textheight}  % 调整行间距
+\begin{subfigure}[b]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth, angle=0]{./img/ms2024-0384fig9c.pdf}
+    \caption{$32$-order $2\times$ integer oversampled channelizer}
+    \label{Figure10c}
+\end{subfigure}
+\hspace{0.02\textwidth}
+\begin{subfigure}[b]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth, angle=0]{./img/ms2024-0384fig9d.pdf}
+    \caption{$32$-order $4/3\times$ rationally oversampled channelizer}
+    \label{Figure10d}
+\end{subfigure}
+\caption{Effect of oversampling factor on channelization}
+\end{figure}
+
+\FloatBarrier  % 确保前面的图已经被排版
+
+When the filter order is reduced, the disadvantages of the critically sampled channelization algorithm become more pronounced. The fan-shaped loss is amplified, while the integer oversampled and rationally oversampled channelization algorithms provide better data results than the critically sampled channelization algorithm, even at lower FIR filter orders. The results are shown in Figs \ref{Figure11a} through \ref{Figure11d}.
+
+\begin{figure}[!htp]
+\centering
+% 第一行，两个子图
+\begin{subfigure}[b]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth, angle=0]{./img/ms2024-0384fig10a.pdf}
+    \caption{$8$-order critically sampled channelizer}
+    \label{Figure11a}
+\end{subfigure}
+\hspace{0.02\textwidth}
+\begin{subfigure}[b]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth, angle=0]{./img/ms2024-0384fig9b.pdf}
+    \caption{$32$-order critically sampled channelizer}
+    \label{Figure11b}
+\end{subfigure}
+
+% 第二行，两个子图
+\vspace{0.01\textheight}  % 调整行间距
+\begin{subfigure}[b]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth, angle=0]{./img/ms2024-0384fig10c.pdf}
+    \caption{$8$-order $2\times$ integer oversampled channelizer}
+    \label{Figure11c}
+\end{subfigure}
+\hspace{0.02\textwidth}
+\begin{subfigure}[b]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth, angle=0]{./img/ms2024-0384fig10d.pdf}
+    \caption{$8$-order $4/3\times$ rationally oversampled channelizer}
+    \label{Figure11d}
+\end{subfigure}
+ \caption{Effect of filter order on channelization}
+\end{figure}
+\FloatBarrier  % 确保前面的图已经被排版
+
+% Based on the results of different oversampling factor channelization algorithms, the DTW (Dynamic Time Warping) value is calculated to determine the best match between the processed data and the original data using dynamic programming. A lower DTW value indicates a closer match to the original data [16]. After calculation, using a $32$-order Hamming window FIR filter and processing polarization $1$ of the first block, the DTW value for the data processed by the critically sampled channelization algorithm is 1969, the DTW value for the $2\times$ oversampled channelization algorithm is $192$, and the DTW value for the $4/3\times$ oversampled channelization algorithm is $1003$. The comparison of DTW values is shown in Figs \ref{Figure12a} through \ref{Figure12c}.
+
+% \begin{figure}[!htp]
+% \centering
+% % 第一行，两个子图
+% \begin{subfigure}[b]{0.32\textwidth}
+%     \centering
+%     \includegraphics[width=\textwidth, angle=0]{./img/original_csc_dtw.pdf}
+%     \caption{DTW between original pol and CSC pol}
+%     \label{Figure12a}
+% \end{subfigure}
+% \hspace{0.01\textwidth}
+% \begin{subfigure}[b]{0.32\textwidth}
+%     \centering
+%     \includegraphics[width=\textwidth, angle=0]{./img/original_iosc_dtw.pdf}
+%     \caption{DTW between original pol and $2\times$ IOSC pol}
+%     \label{Figure12b}
+% \end{subfigure}
+% \hspace{0.01\textwidth}
+% \begin{subfigure}[b]{0.32\textwidth}
+%     \centering
+%     \includegraphics[width=\textwidth, angle=0]{./img/original_rosc_dtw.pdf}
+%     \caption{DTW between original pol and $4/3\times$ ROSC pol}
+%     \label{Figure12c}
+% \end{subfigure}
+% \caption{DTW comparison}
+% \end{figure}
+
+% \FloatBarrier  % 确保前面的图已经被排版
+
+After processing all the block data with the rationally oversampled channelization algorithm, a dispersion delay diagram for each channel is generated, as shown in Fig \ref{Figure13}. Each sub-band correctly displays the pulse profile. Since the number of divided channels is $M=20$ and the data is complex, only half of the data, i.e., $10$ channels, is shown for clarity. Among these, the first channel contains minimal pulse information, making it impossible to integrate a pulse profile similar to those of the other channels. As the number of channels decreases, a more coherent pulse profile can be obtained. Fig \ref{Figure14} presents the phase spectrum diagram of the sub-band without alignment, where the green strip represents the pulse information. Fig \ref{Figure15} shows the phase spectrum diagram of the sub-band after coherent dispersion elimination and alignment, where the pulse is accurately aligned. Finally, Fig \ref{Figure16} displays the pulse profile after channelization and dispersion correction using the rationally oversampled channelization algorithm. The pulse profile in the figure confirms the correctness of the algorithm.
+
+% \begin{figure}[!htp]
+% \centering
+% % 第一行，两个子图
+% \begin{subfigure}[b]{0.48\textwidth}
+%     \centering
+%     \includegraphics[width=\textwidth, angle=0]{./img/ospfb43x_20channel_delay.pdf}
+%     \caption{Sub-band dispersion delay diagram of the rationally oversampled channelization}
+%     \label{Figure13a}
+% \end{subfigure}
+% \hspace{0.02\textwidth}
+% \begin{subfigure}[b]{0.48\textwidth}
+%     \centering
+%     \includegraphics[width=\textwidth, angle=0]{./img/ospfb43x_20channel_phase_before.pdf}
+%     \caption{Sub-band phase frequency spectrum of rationally oversampled channelization (not aligned)}
+%     \label{Figure13b}
+% \end{subfigure}
+
+% % 第二行，两个子图
+% \vspace{0.01\textheight}  % 调整行间距
+% \begin{subfigure}[b]{0.48\textwidth}
+%     \centering
+%     \includegraphics[width=\textwidth, angle=0]{./img/ospfb43x_20channel_phase_after.pdf}
+%     \caption{Sub-band phase diagram of rationally oversampled channelization algorithm (aligned)}
+%     \label{Figure13c}
+% \end{subfigure}
+% \hspace{0.02\textwidth}
+% \begin{subfigure}[b]{0.48\textwidth}
+%     \centering
+%     \includegraphics[width=\textwidth, angle=0]{./img/ospfb43x_20channel_pulse.pdf}
+%     \caption{Pulse profile spectrum of rationally oversampled channelization algorithm}
+%     \label{Figure13d}
+% \end{subfigure}
+% \caption{Effect of filter order on channel transformation}
+% \end{figure}
+% \FloatBarrier  % 确保前面的图已经被排版
+
+\begin{figure}[!htp]
+\centering
+\begin{minipage}{0.49\textwidth}
+    \centering
+    \includegraphics[width=\textwidth, angle=0]{./img/ms2024-0384fig11.pdf}
+    \caption{Sub-band dispersion delay diagram of the rationally oversampled channelization} 
+    \label{Figure13}
+\end{minipage}
+\hspace{0.01\textwidth}  % 调整两个图之间的水平间距
+\begin{minipage}{0.49\textwidth}
+    \centering
+    \includegraphics[width=\textwidth, angle=0]{./img/ms2024-0384fig12.pdf}
+    \caption{Sub-band phase frequency spectrum of rationally oversampled channelization (not aligned)} 
+    \label{Figure14}
+\end{minipage}
+% \caption{Transformation diagrams of rationally oversampled coefficients and data}
+\end{figure}
+\FloatBarrier  % 确保前面的图已经被排版
+
+\begin{figure}[!htp]
+\centering
+\begin{minipage}{0.49\textwidth}
+    \centering
+    \includegraphics[width=\textwidth, angle=0]{./img/ms2024-0384fig13.pdf}
+    \caption{Sub-band phase diagram of rationally oversampled channelization algorithm (aligned)} 
+    \label{Figure15}
+\end{minipage}
+\hspace{0.01\textwidth}  % 调整两个图之间的水平间距
+\begin{minipage}{0.49\textwidth}
+    \centering
+    \includegraphics[width=\textwidth, angle=0]{./img/ms2024-0384fig14.pdf}
+    \caption{Pulse profile spectrum of rationally oversampled channelization algorithm} 
+    \label{Figure16}
+\end{minipage}
+% \caption{Transformation diagrams of rationally oversampled coefficients and data}
+\end{figure}
+\FloatBarrier  % 确保前面的图已经被排版
+
+The execution time of the channelization algorithm with different oversampling factors is compared. Using an Intel i9-9900K@3.60GHz processor and $64$GB of RAM, the time taken for channelization of $11.9$GB of ultra-wideband data is shown in Table \ref{tab:exe_time}. The execution efficiency of the critically sampled channelization algorithm is the highest, with its processing time being less than half that of the oversampled channelization algorithms. Because it eliminates the cycle shift and cut operation. The execution time of the integer oversampled channelization algorithm is comparable to that of the rationally oversampled channelization algorithm.
+
+\FloatBarrier  % 确保前面的图已经被排版
+
+\begin{table}[!htbp]
+\centering
+\begin{tabular}{l|r}
+Type & Execution time(s) \\\hline
+Critical sampling channelization & 9282 \\
+Integer oversampled channelization & 22105 \\
+Rationally oversampled channelization & 22742 \\
+\end{tabular}
+\caption{\label{tab:exe_time}Comparison of execution time for different channelization algorithms}
+\end{table}
+
+By comparing three different channelization algorithms with varying oversampling factors, it is found that the sub-bands of these algorithms exhibit different accuracy and data bandwidth, which directly influence subsequent data processing. Additionally, the observation time and requirements vary for each observer. The applicability of each channelization algorithm is summarized in Table \ref{tab:situation}.
+
+\begin{table}[!htbp]
+\centering
+\begin{tabularx}{\textwidth}{l|X}
+Type & Applicable situation \\\hline
+Critical sampling channelization & Tense computing resources, low transmission rate, small storage space, long observation time, and low accuracy requirements \\
+Integer oversampled channelization & Abundant computational resources, high transmission rate, large storage space, short observation time, and high accuracy requirements \\
+Rationally oversampled channelization & Abundant computational resources, low transmission rate, medium storage space, short observation time, and high accuracy requirements \\
+\end{tabularx}
+\caption{\label{tab:situation}Comparison of applicable situation for different channelization algorithms}
+\end{table}
+
+\section{Conclusion}
+
+Aiming to address the challenges of low accuracy in the critically sampled channelization algorithm and the large bandwidth in the integer oversampled channelization algorithm for ultra-wideband signal processing, a rationally oversampled channelization algorithm is designed and implemented. This algorithm is based on the concept of rational oversampling factors. The algorithm was experimentally validated using the baseband data of the pulsar $J0437-4715$, observed with the Parkes telescope. By comparing the performance of the critically sampled channelization algorithm, the integer oversampled channelization algorithm, and the rationally oversampled channelization algorithm, it is found that the rationally oversampled approach offers significant advantages in balancing accuracy and data bandwidth. The experimental results demonstrate that the rationally oversampled channelization algorithm effectively divides the ultra-wideband signal and yields the correct pulse profile. 
+% \del {
+% Future plans involve deploying this algorithm on the FPGA.
+% } 
+% \add{
+Future plans include deploying the algorithm on FPGA and finding ways to reduce the computational load, such as developing a lightweight filter architecture based on CORDIC to replace the traditional multiply-accumulate unit and reduce the utilization of logic resources. Aimed at molecular spectral line observation data, adjust the algorithm to adapt to it.
+% }
+
+\normalem
+\begin{acknowledgements}
+
+This work is supported by the National Key R\&D Program of China Nos. 2021YFC2203502 and 2022YFF0711502; the National Natural Science Foundation of China (NSFC) (12173077); the Chinese Academy of Sciences (CAS)“Light of West China”Program (No. xbzg-zdsys-202410); the Tianshan Talent Project of Xinjiang Uygur Autonomous Region (2022TSYCCX0095 and 2023TSYCCX0112); the Scientific Instrument Developing Project of the Chinese Academy of Sciences, grant No.PTYQ2022YZZD01; China National Astronomical Data Center (NADC); the Operation, Maintenance and Upgrading Fund for Astronomical Telescopes and Facility Instruments, budgeted from the Ministry of Finance of China (MOF) and administrated by the Chinese Academy of Sciences (CAS); Natural Science Foundation of Xinjiang Uygur Autonomous Region (2022D01A360).
+
+\end{acknowledgements}
+  
+\bibliographystyle{raa}
+\bibliography{bibtex}
+
+\end{document}
+%%==^..^============== the END of RAA.tex ===================^_^==
