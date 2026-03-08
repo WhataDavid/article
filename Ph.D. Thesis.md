@@ -189,3 +189,33 @@
 第 5 章 超宽带信道化系统实验测试与科学验证。 整合前述理论与硬件系统，基于南山 26 米射电望远镜开展实测实验。展示对多颗实测脉冲星源的子带划分与合并处理效果，通过比对各子带及宽带合并后的动态谱与脉冲轮廓，全面评估所构建全链路硬件流水线的科学有效性与系统稳定性。
 
 第 6 章 总结与展望。 对全文的主要研究工作及取得的核心创新成果进行总结，并客观分析现有研究中存在的局限性。结合未来新疆奇台 110 米射电望远镜（QTT）等大型设备的建设需求，对超宽带天文信号处理技术的发展方向提出展望。
+
+参考文献
+
+Dewdney, P. E., Hall, P. J., Schilizzi, R. T., & Lazio, T. J. L. (2009). "The Square Kilometre Array." Proceedings of the IEEE, 97(8), 1482-1496. 
+
+Price, D. C. (2021). "Spectrometers and polyphase filterbanks in radio astronomy." The WSPC Handbook of Astronomical Instrumentation: Volume 1, 159-179. 
+
+Harris, F. J. (2004). Multirate Signal Processing for Communication Systems. Prentice Hall PTR. 
+
+Morrison, I. S., Bunton, J. D., van Straten, W., Deller, A., & Jameson, A. (2020). "Performance of oversampled polyphase filterbank inversion via Fourier transform." Journal of Astronomical Instrumentation, 9(01), 2050004. 
+
+Zhang, M., Zhang, H. L., Zhang, Y. Z., Wang, J., Guo, S. C., & Meng, Q. (2023). "Research on Channelization Techniques of Radio Astronomical Wideband Signal with Oversampled Polyphase Filter Banks." Research in Astronomy and Astrophysics, 23(8), 085012. 
+
+Harris, F., Morgenstern, H., & Ohayon, E. (2024). "M-Path Non-Maximally Decimated Analysis Channelizer Implemented with 3M/4 Resampling Commutator." 2024 IEEE 67th International Midwest Symposium on Circuits and Systems (MWSCAS), 211-217. 
+
+Zwagerman, M. D. (2015). "High level synthesis, a use case comparison with hardware description language." Master's thesis, Michigan Technological University. 
+
+Nane, R., Sica, V., Pilato, C., Choi, J., Fort, B., Canis, A., ... & Sciuto, C. (2016). "A survey and evaluation of FPGA high-level synthesis tools." IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems, 35(10), 1591-1604. 
+
+Huang, L., Li, D. L., Wang, K. P., et al. (2020). "A survey on performance optimization of high-level synthesis tools." Journal of Computer Science and Technology, 35, 697-720. 
+
+Smith, J. P., Bailey, J. I., Tuthill, J., Stefanazzi, L., Cancelo, G., Treptow, K., & Mazin, B. A. (2021). "A high-throughput oversampled polyphase filter bank using Vivado HLS and PYNQ on a RFSoC." IEEE Open Journal of Circuits and Systems, 2, 241-252. 
+
+Hickish, J., Abdurashidova, Z., Ali, Z., et al. (2016). "A decade of developing radio-astronomy instrumentation using CASPER open-source technology." Journal of Astronomical Instrumentation, 5(04), 1641001. 
+
+Farley, B., Erdmann, C., Vaz, B., et al. (2017). "A programmable RFSoC in 16nm FinFET technology for wideband communications." 2017 IEEE Asian Solid-State Circuits Conference (A-SSCC), 1-4. 
+
+Jia, B., & Chen, X. (2021). "A Fast Radio Burst (FRB) Capture System for the Onsala Space Observatory." Master's thesis, Chalmers University of Technology. 
+
+Burnett, M. C. (2023). "On Algorithmic Design Methodologies, Heterogeneous RFSoC/GPU Beamformers, and Cryogenic Antenna Efficiency Evaluation for Phased Array Receivers in Radio Astronomy." PhD Dissertation, Brigham Young University. 
