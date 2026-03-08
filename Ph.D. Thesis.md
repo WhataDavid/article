@@ -264,7 +264,7 @@ $$w(n) = 0.54 - 0.46 \cos\left( \frac{2\pi n}{N-1} \right) \quad 0 \le n \le N-1
 
 端口交互协议与时序接口的定义，直接决定了模块在异构系统集成时的流转效率。传统的 HLS 默认综合策略通常会生成包含 `ap_start`、`ap_done`、`ap_ready` 等块级握手信号的微观控制逻辑。面对天文超宽带连续数据流“无阻塞、零等待”的传输诉求，这种握手开销会严重拖累全局吞吐率。通过在顶层函数部署 `#pragma HLS INTERFACE ap_ctrl_none` 编译指示，本设计彻底剥离了冗余的执行状态机，将滤波器重塑为纯数据驱动的自由运行（Free-running）流水线单元。配合 `ap_none register` 约束，在输入输出物理引脚端强制插入了硬件寄存器级，有效切断了跨模块的组合逻辑飞线，大幅提升了大规模高频设计下的全局时序收敛韧性 (Liu & Carloni, 2013)。
 
-历史观测样本的暂存与同步移位是 FIR 滤波器的核心行为特征。在 C++ 算法框架中，将延时状态缓存数组 `delay_pipeline_array` 显式声明为 `static` 静态局部变量，能够精确制导综合器将其映射为具备数据锁存特性的移位寄存器链。在执行离散卷积的核心 `for` 循环内部，采用了逆序寻址机制，并巧妙嵌套三目运算符（`i ? delay_pipeline_array[i - 1] : input_data`），在一个计算步长内优雅完成了数据的逐级右移与新基带样本的首端压入。结合全局作用域下的 `#pragma HLS PIPELINE` 约束以及前述的数组完全重组策略（`ARRAY_PARTITION complete`），该紧凑的代码结构在底层将被隐式地全展开为 128 个物理并行的 DSP 核心与极低延迟的多级加法树网络，完美契合了超宽带数字终端单周期全吞吐的性能目标。本算法的完整代码已发布在码云(https://gitee.com/WhataDavid/compare-hdl-fir-ip-with-hls-fir-ip/tree/master)：
+历史观测样本的暂存与同步移位是 FIR 滤波器的核心行为特征。在 C++ 算法框架中，将延时状态缓存数组 `delay_pipeline_array` 显式声明为 `static` 静态局部变量，能够精确制导综合器将其映射为具备数据锁存特性的移位寄存器链。在执行离散卷积的核心 `for` 循环内部，采用了逆序寻址机制，并嵌套三目运算符（`i ? delay_pipeline_array[i - 1] : input_data`），在一个计算步长内优雅完成了数据的逐级右移与新基带样本的首端压入。结合全局作用域下的 `#pragma HLS PIPELINE` 约束以及前述的数组完全重组策略（`ARRAY_PARTITION complete`），该紧凑的代码结构在底层将被隐式地全展开为 128 个物理并行的 DSP 核心与极低延迟的多级加法树网络，完美契合了超宽带数字终端单周期全吞吐的性能目标。本算法的完整代码已发布在码云(https://gitee.com/WhataDavid/compare-hdl-fir-ip-with-hls-fir-ip/tree/master)
 
 ## 2.4 硬件实现与性能评估
 
